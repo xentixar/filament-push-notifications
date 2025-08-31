@@ -19,7 +19,7 @@ class PushNotification implements Plugin
 
     public function register(Panel $panel): void
     {
-        $panel->plugins([
+        $panel->resources([
 
         ]);
     }
