@@ -1,0 +1,32 @@
+{
+    "name": "xentixar/filament-push-notifications",
+    "version": "1.0.0",
+    "description": "This package provides a way to send push notifications to users of your application.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Xentixar\\FilamentPushNotifications\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "xentixar",
+            "email": "xentixar@gmail.com",
+            "role": "Developer",
+            "homepage": "https://pawanrajbhatta.com.np",
+            "github": "https://github.com/xentixar"
+        }
+    ],
+    "require": {
+        "filament/support": "^4.0",
+        "sockeon/sockeon": "dev-main"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Xentixar\\FilamentPushNotifications\\PushNotificationsServiceProvider"
+            ]
+        }
+    }
+}
