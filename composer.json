@@ -20,7 +20,7 @@
     ],
     "require": {
         "filament/support": "^4.0",
-        "sockeon/sockeon": "dev-main"
+        "sockeon/sockeon": "^2.0"
     },
     "extra": {
         "laravel": {
