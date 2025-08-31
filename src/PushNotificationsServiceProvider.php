@@ -2,6 +2,9 @@
 
 namespace Xentixar\FilamentPushNotifications;
 
+use Filament\Facades\Filament;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Xentixar\FilamentPushNotifications\Console\Commands\StartSockeonCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -15,6 +18,7 @@ class PushNotificationsServiceProvider extends PackageServiceProvider
             ->hasCommands(StartSockeonCommand::class)
             ->hasMigrations('create_push_notifications_table')
             ->runsMigrations()
+            ->hasViews()
             ->hasInstallCommand(function (InstallCommand $installCommand) {
                 $installCommand
                     ->startWith(function (InstallCommand $command) {
@@ -32,5 +36,14 @@ class PushNotificationsServiceProvider extends PackageServiceProvider
         $this->publishes([
             __DIR__ . '/../database/migrations/create_push_notifications_table.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_push_notifications_table.php'),
         ], 'filament-push-notifications-migrations');
+
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'filament-push-notifications');
+
+        Filament::serving(function () {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament-push-notifications::notification')->render(),
+            );
+        });
     }
 }

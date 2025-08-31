@@ -8,34 +8,30 @@ use Filament\Support\Contracts\HasIcon;
 
 enum PushNotificationType: string implements HasLabel, HasColor, HasIcon
 {
-    case INFO = 'info';
-    case SUCCESS = 'success';
-    case ERROR = 'error';
+    case BROWSER = 'browser';
+    case FILAMENT = 'filament';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::INFO => 'Info',
-            self::SUCCESS => 'Success',
-            self::ERROR => 'Error',
+            self::BROWSER => 'Browser',
+            self::FILAMENT => 'Filament'
         };
     }
 
     public function getColor(): string
     {
         return match ($this) {
-            self::INFO => 'info',
-            self::SUCCESS => 'success',
-            self::ERROR => 'error',
+            self::BROWSER => 'success',
+            self::FILAMENT => 'info'
         };
     }
 
     public function getIcon(): string
     {
         return match ($this) {
-            self::INFO => 'heroicon-o-information-circle',
-            self::SUCCESS => 'heroicon-o-check-circle',
-            self::ERROR => 'heroicon-o-x-circle',
+            self::BROWSER => 'heroicon-o-globe-alt',
+            self::FILAMENT => 'heroicon-o-check-circle'
         };
     }
 }

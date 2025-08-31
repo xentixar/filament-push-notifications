@@ -4,6 +4,7 @@ namespace Xentixar\FilamentPushNotifications;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Xentixar\FilamentPushNotifications\Resources\PushNotifications\PushNotificationResource;
 
 class PushNotification implements Plugin
 {
@@ -20,7 +21,7 @@ class PushNotification implements Plugin
     public function register(Panel $panel): void
     {
         $panel->resources([
-
+            PushNotificationResource::class,
         ]);
     }
 
