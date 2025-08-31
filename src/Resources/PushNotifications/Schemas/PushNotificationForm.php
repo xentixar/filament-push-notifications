@@ -31,7 +31,7 @@ class PushNotificationForm
                     ->required(),
                 Select::make('receivers')
                     ->label('Receivers')
-                    ->options(fn() => User::all()->pluck('name', 'id'))
+                    ->options(fn() => config('filament-push-notifications.receiver_model', User::class)::all()->pluck('name', 'id'))
                     ->multiple()
                     ->columnSpanFull()
                     ->preload()

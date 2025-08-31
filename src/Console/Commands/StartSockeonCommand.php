@@ -14,7 +14,7 @@ class StartSockeonCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'start:sockeon {--host=0.0.0.0} {--port=2025} {--debug=true}';
+    protected $signature = 'start:sockeon';
 
     /**
      * The console command description.
@@ -29,16 +29,17 @@ class StartSockeonCommand extends Command
     public function handle()
     {
         $config = new ServerConfig();
-        $config->host = $this->option('host');
-        $config->port = $this->option('port');
-        $config->debug = $this->option('debug');
+        $config->host = config('filament-push-notifications.socket.host');
+        $config->port = config('filament-push-notifications.socket.port');
+        $config->debug = config('filament-push-notifications.socket.debug');
         $config->cors = [
-            'allowed_origins' => ['http://127.0.0.1:8000', 'http://localhost:8000'],
+            'allowed_origins' => config('filament-push-notifications.socket.allowed_origins'),
             'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             'allowed_headers' => ['Content-Type', 'Authorization'],
             'allowed_credentials' => true,
             'max_age' => 3600,
         ];
+        $config->authKey = config('filament-push-notifications.socket.key');
 
         $server = new Server($config);
         $server->registerControllers([SockeonAuthController::class]);

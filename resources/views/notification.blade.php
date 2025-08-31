@@ -169,7 +169,7 @@
     <div class="notification-container" id="notificationContainer"></div>
     
     <script>
-        const socket = new WebSocket('ws://localhost:2025');
+        const socket = new WebSocket('ws://{{ config('filament-push-notifications.socket.host') }}:{{ config('filament-push-notifications.socket.port') }}?key={{ config('filament-push-notifications.socket.key') }}');
         let notificationCounter = 0;
 
         socket.onopen = () => {
@@ -177,7 +177,7 @@
         };
 
         const handleConnected = (data) => {
-            fetch('http://localhost:2025/sockeon/auth', {
+            fetch('http://{{ config('filament-push-notifications.socket.host') }}:{{ config('filament-push-notifications.socket.port') }}/sockeon/auth', {
                 method: 'POST',
                 body: JSON.stringify({
                     clientId: data.clientId,

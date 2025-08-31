@@ -17,6 +17,7 @@ class PushNotificationsServiceProvider extends PackageServiceProvider
         $package->name('filament-push-notifications')
             ->hasCommands(StartSockeonCommand::class)
             ->hasMigrations('create_push_notifications_table')
+            ->hasConfigFile('filament-push-notifications')
             ->runsMigrations()
             ->hasViews()
             ->hasInstallCommand(function (InstallCommand $installCommand) {
@@ -25,7 +26,8 @@ class PushNotificationsServiceProvider extends PackageServiceProvider
                         $command->info('Hello, and welcome to Filament Push Notifications!');
                         $command->newLine(1);
                     })
-                    ->publishMigrations();
+                    ->publishMigrations()
+                    ->publishConfigFile();
             });
     }
 
@@ -45,5 +47,9 @@ class PushNotificationsServiceProvider extends PackageServiceProvider
                 fn (): string => view('filament-push-notifications::notification')->render(),
             );
         });
+
+        $this->publishes([
+            __DIR__ . '/config/filament-push-notifications.php' => config_path('filament-push-notifications.php'),
+        ], 'config');
     }
 }

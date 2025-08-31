@@ -18,9 +18,10 @@ class PushNotificationsTable
             ->columns([
                 TextColumn::make('title')
                     ->label('Title')
+                    ->limit(30)
                     ->searchable(),
                 TextColumn::make('message')
-                    ->limit(50)
+                    ->limit(30)
                     ->label('Message')
                     ->searchable(),
                 TextColumn::make('type')
@@ -34,17 +35,15 @@ class PushNotificationsTable
                     ->limit(10)
                     ->formatStateUsing(function ($state) {
                         $userIds = explode(',', $state);
-                        $users = User::query()->whereIn('id', $userIds)->get();
+                        $users = User::query()->whereIn('id', $userIds)->take(3)->get();
                         return $users->map(function ($user) {
                             return $user->name;
                         })->implode(', ');
                     }),
                 TextColumn::make('scheduled_at')
                     ->label('Scheduled At')
-                    ->searchable()
-                    ->formatStateUsing(function ($state) {
-                        return $state->format('Y-m-d H:i:s');
-                    }),
+                    ->default('N/A')
+                    ->searchable(),
                 TextColumn::make('created_at')
                     ->label('Created At')
                     ->toggleable(isToggledHiddenByDefault: true)
