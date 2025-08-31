@@ -9,6 +9,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Xentixar\FilamentPushNotifications\Enums\PushNotificationType;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
 
 class PushNotificationsTable
 {
@@ -59,7 +60,7 @@ class PushNotificationsTable
                     ->options(PushNotificationType::class),
             ])
             ->recordActions([
-                //
+                DeleteAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

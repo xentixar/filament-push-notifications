@@ -192,12 +192,19 @@
         };
 
         function showNotification(notificationData) {            
-            const notificationType = notificationData.type || 'filament';
+            const notificationDataWithDefaults = {
+                title: notificationData.title || '{{ config("filament-push-notifications.browser_notification.defaults.title") }}',
+                message: notificationData.message || '{{ config("filament-push-notifications.browser_notification.defaults.message") }}',
+                type: notificationData.type || '{{ config("filament-push-notifications.browser_notification.defaults.type") }}',
+                ...notificationData
+            };
+            
+            const notificationType = notificationDataWithDefaults.type || 'filament';
             
             if (notificationType === 'browser') {
-                showBrowserNotification(notificationData);
+                showBrowserNotification(notificationDataWithDefaults);
             } else {
-                showFilamentNotification(notificationData);
+                showFilamentNotification(notificationDataWithDefaults);
             }
         }
 
@@ -278,20 +285,25 @@
         }
 
         function createBrowserNotification(notificationData) {
+            const config = @json(config('filament-push-notifications.browser_notification'));
+            
             const notification = new Notification(notificationData.title || 'Notification', {
                 body: notificationData.message || '',
-                icon: notificationData.icon || '/favicon.ico',
-                badge: notificationData.badge || '/favicon.ico',
-                tag: notificationData.tag || 'default',
-                requireInteraction: notificationData.requireInteraction || false,
-                silent: notificationData.silent || false,
-                vibrate: notificationData.vibrate || [200, 100, 200]
+                icon: notificationData.icon || config.favicon,
+                badge: notificationData.badge || config.badge,
+                tag: notificationData.tag || config.tag,
+                requireInteraction: notificationData.requireInteraction !== undefined ? notificationData.requireInteraction : config.require_interaction,
+                silent: notificationData.silent !== undefined ? notificationData.silent : config.silent,
+                vibrate: notificationData.vibrate || config.vibrate,
+                dir: notificationData.dir || config.dir,
+                lang: notificationData.lang || config.lang,
+                renotify: notificationData.renotify !== undefined ? notificationData.renotify : config.renotify
             });
 
-            if (!notificationData.requireInteraction) {
+            if (!notificationData.requireInteraction && !config.require_interaction) {
                 setTimeout(() => {
                     notification.close();
-                }, 5000);
+                }, config.timeout);
             }
 
             notification.onclick = function() {
@@ -300,6 +312,8 @@
                 
                 if (notificationData.url) {
                     window.location.href = notificationData.url;
+                } else if (config.url) {
+                    window.location.href = config.url;
                 }
             };
 

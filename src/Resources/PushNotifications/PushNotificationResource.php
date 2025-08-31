@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PushNotificationResource extends Resource
 {
@@ -20,6 +21,15 @@ class PushNotificationResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    public static function getNavigationGroup(): string|UnitEnum|null
+    {
+        return config('filament-push-notifications.navigation.group', 'Settings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return config('filament-push-notifications.navigation.label', 'Push Notifications');
+    }
     public static function form(Schema $schema): Schema
     {
         return PushNotificationForm::configure($schema);
