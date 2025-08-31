@@ -41,15 +41,19 @@ class PushNotificationsServiceProvider extends PackageServiceProvider
 
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'filament-push-notifications');
 
+        $this->publishes([
+            __DIR__ . "/../resources/views" => resource_path('views/vendor/filament-push-notifications'),
+        ], 'filament-push-notifications-views');
+
+        $this->publishes([
+            __DIR__ . '/../config/filament-push-notifications.php' => config_path('filament-push-notifications.php'),
+        ], 'filament-push-notifications-config');
+
         Filament::serving(function () {
             FilamentView::registerRenderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => view('filament-push-notifications::notification')->render(),
             );
         });
-
-        $this->publishes([
-            __DIR__ . '/config/filament-push-notifications.php' => config_path('filament-push-notifications.php'),
-        ], 'config');
     }
 }
