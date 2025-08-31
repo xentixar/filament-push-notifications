@@ -38,6 +38,7 @@ class PushNotificationForm
                     ->searchable()
                     ->required(),
                 DateTimePicker::make('scheduled_at')
+                    ->minDate(now())
                     ->label('Scheduled At')
                     ->helperText('Leave empty to send immediately')
                     ->columnSpanFull(),

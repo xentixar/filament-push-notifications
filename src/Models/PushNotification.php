@@ -29,5 +29,6 @@ class PushNotification extends Model
     protected $casts = [
         'receivers' => 'array',
         'type' => PushNotificationType::class,
+        'scheduled_at' => 'datetime',
     ];
 }

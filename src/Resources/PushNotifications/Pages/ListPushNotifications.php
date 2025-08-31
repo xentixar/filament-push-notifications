@@ -3,10 +3,10 @@
 namespace Xentixar\FilamentPushNotifications\Resources\PushNotifications\Pages;
 
 use Filament\Actions\CreateAction;
-use Xentixar\FilamentPushNotifications\Events\NotificationPushedEvent;
+use Xentixar\FilamentPushNotifications\Jobs\SchedulePushNotificationJob;
 use Xentixar\FilamentPushNotifications\Resources\PushNotifications\PushNotificationResource;
 use Filament\Resources\Pages\ListRecords;
-use Sockeon\Sockeon\Core\Event;
+use Xentixar\FilamentPushNotifications\Models\PushNotification;
 
 class ListPushNotifications extends ListRecords
 {
@@ -16,9 +16,14 @@ class ListPushNotifications extends ListRecords
     {
         return [
             CreateAction::make()
-                ->after(function ($record) {
-                    Event::broadcast(new NotificationPushedEvent($record));
-                }),
+                ->after(function (PushNotification $record) {
+                    if ($record->scheduled_at && $record->scheduled_at->isFuture()) {
+                        $delay = now()->diffInSeconds($record->scheduled_at);
+                        SchedulePushNotificationJob::dispatch($record)->delay($delay);
+                    } else {
+                        SchedulePushNotificationJob::dispatchSync($record);
+                    }
+                })
         ];
     }
 }
