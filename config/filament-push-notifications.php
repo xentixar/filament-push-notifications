@@ -55,13 +55,13 @@ return [
     ],
 
     /**
-     * Browser notification configuration.
-     * These settings control the appearance and behavior of browser notifications.
+     * Native notification configuration.
+     * These settings control the appearance and behavior of native system notifications.
      * Note: title, message, and type are provided by the backend and cannot be overridden here.
      */
-    'browser_notification' => [
+    'native_notification' => [
         /**
-         * The favicon/icon URL to display in the browser notification.
+         * The favicon/icon URL to display in the native notification.
          * This should be a publicly accessible image URL.
          */
         'favicon' => env('NOTIFICATION_FAVICON', 'https://www.google.com/favicon.ico'),
@@ -92,7 +92,7 @@ return [
         
         /**
          * Note: Custom actions are only supported for persistent notifications
-         * shown through Service Workers, not for regular browser notifications.
+         * shown through Service Workers, not for regular native notifications.
          * This configuration is kept for future Service Worker implementation.
          */
         'actions' => [
@@ -109,7 +109,7 @@ return [
         
         /**
          * Whether the notification should be silent (no sound).
-         * If false, the browser will play a default notification sound.
+         * If false, the system will play a default notification sound.
          */
         'silent' => env('NOTIFICATION_SILENT', false),
         

@@ -4,16 +4,16 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/xentixar/filament-push-notifications.svg)](https://packagist.org/packages/xentixar/filament-push-notifications)
 [![License](https://img.shields.io/packagist/l/xentixar/filament-push-notifications.svg)](https://packagist.org/packages/xentixar/filament-push-notifications)
 
-A comprehensive Laravel package that provides real-time push notifications for Filament applications with support for both browser notifications and in-app Filament notifications. Built with WebSocket technology for instant delivery and seamless user experience.
+A comprehensive Laravel package that provides real-time push notifications for Filament applications with support for both native notifications and in-app local notifications. Built with WebSocket technology for instant delivery and seamless user experience.
 
 ## ✨ Features
 
 - **Real-time Notifications**: Instant push notifications using WebSocket technology
-- **Dual Notification Types**: Support for both browser notifications and in-app Filament notifications
+- **Dual Notification Types**: Support for both native notifications and in-app local notifications
 - **Scheduled Notifications**: Schedule notifications to be sent at specific times
 - **User Targeting**: Send notifications to specific users or groups
 - **Filament Admin Panel**: Complete admin interface for managing notifications
-- **Browser Notification Support**: Native browser notifications with customizable options
+- **Native Notification Support**: System notifications with customizable options
 - **WebSocket Integration**: Built-in WebSocket server using Sockeon
 - **Queue Support**: Background job processing for better performance
 - **Customizable Configuration**: Extensive configuration options for all aspects
@@ -87,10 +87,10 @@ The package configuration file is located at `config/filament-push-notifications
 ],
 ```
 
-### Browser Notification Configuration
+### Native Notification Configuration
 
 ```php
-'browser_notification' => [
+'native_notification' => [
     'favicon' => env('NOTIFICATION_FAVICON', 'https://example.com/favicon.ico'),
     'url' => env('NOTIFICATION_DEFAULT_URL', 'https://example.com'),
     'tag' => env('NOTIFICATION_TAG', 'default'),
@@ -115,9 +115,9 @@ php artisan sockeon:start
 
 ## 🎯 Notification Types
 
-### Browser Notifications
+### Native Notifications
 
-Browser notifications appear as native system notifications and support:
+Native notifications appear as system notifications and support:
 - Custom icons and badges
 - Vibration patterns (mobile devices)
 - Click actions and URL navigation
@@ -142,7 +142,7 @@ Schema::create('push_notifications', function (Blueprint $table) {
     $table->id();
     $table->string('title');
     $table->text('message');
-    $table->enum('type', ['browser', 'filament']);
+    $table->enum('type', ['native', 'local']);
     $table->json('receivers');
     $table->timestamp('scheduled_at')->nullable();
     $table->timestamps();
@@ -155,7 +155,7 @@ The package automatically injects the notification system into your Filament adm
 
 - WebSocket connections
 - Real-time notification delivery
-- Browser notification permissions
+- Native notification permissions
 - Notification display and management
 - Auto-dismiss and progress tracking
 
@@ -199,8 +199,8 @@ class PushNotification extends Model
 ```php
 enum PushNotificationType: string
 {
-    case BROWSER = 'browser';
-    case FILAMENT = 'filament';
+    case NATIVE = 'native';
+    case LOCAL = 'local';
 }
 ```
 
@@ -226,8 +226,8 @@ class NotificationPushedEvent
    - Check host and port configuration
    - Verify firewall settings
 
-2. **Browser Notifications Not Working**
-   - Check browser notification permissions
+2. **Native Notifications Not Working**
+- Check native notification permissions
    - Ensure HTTPS is used (required for notifications)
    - Verify favicon and badge URLs are accessible
 

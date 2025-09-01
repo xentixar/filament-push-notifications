@@ -167,9 +167,11 @@
     </style>
 
     <div class="notification-container" id="notificationContainer"></div>
-    
+
     <script>
-        const socket = new WebSocket('ws://{{ config('filament-push-notifications.socket.host') }}:{{ config('filament-push-notifications.socket.port') }}?key={{ config('filament-push-notifications.socket.key') }}');
+        const socket = new WebSocket(
+            'ws://{{ config('filament-push-notifications.socket.host') }}:{{ config('filament-push-notifications.socket.port') }}?key={{ config('filament-push-notifications.socket.key') }}'
+            );
         let notificationCounter = 0;
 
         socket.onopen = () => {
@@ -191,18 +193,21 @@
             });
         };
 
-        function showNotification(notificationData) {            
+        function showNotification(notificationData) {
             const notificationDataWithDefaults = {
-                title: notificationData.title || '{{ config("filament-push-notifications.browser_notification.defaults.title") }}',
-                message: notificationData.message || '{{ config("filament-push-notifications.browser_notification.defaults.message") }}',
-                type: notificationData.type || '{{ config("filament-push-notifications.browser_notification.defaults.type") }}',
+                title: notificationData.title ||
+                    '{{ config('filament-push-notifications.native_notification.defaults.title') }}',
+                message: notificationData.message ||
+                    '{{ config('filament-push-notifications.native_notification.defaults.message') }}',
+                type: notificationData.type ||
+                    '{{ config('filament-push-notifications.native_notification.defaults.type') }}',
                 ...notificationData
             };
-            
-            const notificationType = notificationDataWithDefaults.type || 'filament';
-            
-            if (notificationType === 'browser') {
-                showBrowserNotification(notificationDataWithDefaults);
+
+            const notificationType = notificationDataWithDefaults.type || 'local';
+
+            if (notificationType === 'native') {
+                showNativeNotification(notificationDataWithDefaults);
             } else {
                 showFilamentNotification(notificationDataWithDefaults);
             }
@@ -247,15 +252,15 @@
             }, 5000);
         }
 
-        function showBrowserNotification(notificationData) {
+        function showNativeNotification(notificationData) {
             if (!('Notification' in window)) {
-                console.log('This browser does not support notifications');
+                console.log('This browser does not support native notifications');
                 showFilamentNotification(notificationData);
                 return;
             }
 
             if (Notification.permission === 'denied') {
-                console.log('Browser notifications are blocked');
+                console.log('Native notifications are blocked');
                 showFilamentNotification(notificationData);
                 return;
             }
@@ -266,7 +271,7 @@
             }
 
             if (Notification.permission === 'granted') {
-                createBrowserNotification(notificationData);
+                createNativeNotification(notificationData);
             }
         }
 
@@ -276,23 +281,24 @@
             if ('Notification' in window) {
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
-                        console.log('Browser notifications enabled');
+                        console.log('Native notifications enabled');
                     } else {
-                        console.log('Browser notifications denied');
+                        console.log('Native notifications denied');
                     }
                 });
             }
         }
 
-        function createBrowserNotification(notificationData) {
-            const config = @json(config('filament-push-notifications.browser_notification'));
-            
+        function createNativeNotification(notificationData) {
+            const config = @json(config('filament-push-notifications.native_notification'));
+
             const notification = new Notification(notificationData.title || 'Notification', {
                 body: notificationData.message || '',
                 icon: notificationData.icon || config.favicon,
                 badge: notificationData.badge || config.badge,
                 tag: notificationData.tag || config.tag,
-                requireInteraction: notificationData.requireInteraction !== undefined ? notificationData.requireInteraction : config.require_interaction,
+                requireInteraction: notificationData.requireInteraction !== undefined ? notificationData
+                    .requireInteraction : config.require_interaction,
                 silent: notificationData.silent !== undefined ? notificationData.silent : config.silent,
                 vibrate: notificationData.vibrate || config.vibrate,
                 dir: notificationData.dir || config.dir,
@@ -309,7 +315,7 @@
             notification.onclick = function() {
                 window.focus();
                 notification.close();
-                
+
                 if (notificationData.url) {
                     window.location.href = notificationData.url;
                 } else if (config.url) {
@@ -318,7 +324,7 @@
             };
 
             notification.onclose = function() {
-                console.log('Browser notification closed');
+                console.log('Native notification closed');
             };
         }
 

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('message');
-            $table->enum('type', ['browser', 'filament'])->nullable();
+            $table->enum('type', ['native', 'local'])->nullable();
             $table->json('receivers')->nullable();
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamps();

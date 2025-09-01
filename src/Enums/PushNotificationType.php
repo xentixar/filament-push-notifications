@@ -8,30 +8,30 @@ use Filament\Support\Contracts\HasIcon;
 
 enum PushNotificationType: string implements HasLabel, HasColor, HasIcon
 {
-    case BROWSER = 'browser';
-    case FILAMENT = 'filament';
+    case NATIVE = 'native';
+    case LOCAL = 'local';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::BROWSER => 'Browser',
-            self::FILAMENT => 'Filament'
+            self::NATIVE => 'Native',
+            self::LOCAL => 'Local'
         };
     }
 
     public function getColor(): string
     {
         return match ($this) {
-            self::BROWSER => 'success',
-            self::FILAMENT => 'info'
+            self::NATIVE => 'success',
+            self::LOCAL => 'info'
         };
     }
 
     public function getIcon(): string
     {
         return match ($this) {
-            self::BROWSER => 'heroicon-o-globe-alt',
-            self::FILAMENT => 'heroicon-o-check-circle'
+            self::NATIVE => 'heroicon-o-globe-alt',
+            self::LOCAL => 'heroicon-o-check-circle'
         };
     }
 }

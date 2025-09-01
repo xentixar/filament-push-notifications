@@ -153,7 +153,7 @@ class NotificationService
 
 ```javascript
 /**
- * Creates and displays a browser notification.
+ * Creates and displays a native notification.
  * 
  * @param {Object} notificationData - The notification data
  * @param {string} notificationData.title - Notification title
@@ -161,11 +161,11 @@ class NotificationService
  * @param {string} [notificationData.icon] - Custom icon URL
  * @returns {Notification|null} The created notification or null if failed
  */
-function createBrowserNotification(notificationData) {
+function createNativeNotification(notificationData) {
     try {
         // Check if browser supports notifications
         if (!('Notification' in window)) {
-            console.warn('Browser notifications not supported');
+            console.warn('Native notifications not supported');
             return null;
         }
 
