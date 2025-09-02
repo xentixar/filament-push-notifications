@@ -1,6 +1,6 @@
 {
     "name": "xentixar/filament-push-notifications",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "This package provides a way to send push notifications to users of your application.",
     "type": "library",
     "license": "MIT",
