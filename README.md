@@ -47,7 +47,28 @@ php artisan vendor:publish --tag=filament-push-notifications-migrations
 php artisan migrate
 ```
 
-### Step 4: Configure Environment Variables
+### Step 4: Add Plugin to Admin Panel Provider
+
+Add the push notifications plugin to your `app/Providers/Filament/AdminPanelProvider.php`:
+
+```php
+use Xentixar\FilamentPushNotifications\PushNotification;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            // ... other configuration
+            ->plugins([
+                // ... other plugins
+                PushNotification::make(),
+            ]);
+    }
+}
+```
+
+### Step 5: Configure Environment Variables
 
 Add the following variables to your `.env` file:
 
