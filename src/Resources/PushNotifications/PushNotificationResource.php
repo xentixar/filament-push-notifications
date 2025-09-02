@@ -3,7 +3,9 @@
 namespace Xentixar\FilamentPushNotifications\Resources\PushNotifications;
 
 use Xentixar\FilamentPushNotifications\Resources\PushNotifications\Pages\ListPushNotifications;
+use Xentixar\FilamentPushNotifications\Resources\PushNotifications\Pages\ViewPushNotification;
 use Xentixar\FilamentPushNotifications\Resources\PushNotifications\Schemas\PushNotificationForm;
+use Xentixar\FilamentPushNotifications\Resources\PushNotifications\Schemas\PushNotificationInfolist;
 use Xentixar\FilamentPushNotifications\Resources\PushNotifications\Tables\PushNotificationsTable;
 use Xentixar\FilamentPushNotifications\Models\PushNotification;
 use BackedEnum;
@@ -30,6 +32,12 @@ class PushNotificationResource extends Resource
     {
         return config('filament-push-notifications.navigation.label', 'Push Notifications');
     }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return PushNotificationInfolist::configure($schema);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PushNotificationForm::configure($schema);
@@ -44,6 +52,7 @@ class PushNotificationResource extends Resource
     {
         return [
             'index' => ListPushNotifications::route('/'),
+            'view' => ViewPushNotification::route('/{record}'),
         ];
     }
 }

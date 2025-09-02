@@ -10,6 +10,7 @@ use Filament\Tables\Table;
 use Xentixar\FilamentPushNotifications\Enums\PushNotificationType;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 
 class PushNotificationsTable
 {
@@ -60,6 +61,7 @@ class PushNotificationsTable
                     ->options(PushNotificationType::class),
             ])
             ->recordActions([
+                ViewAction::make(),
                 DeleteAction::make()
             ])
             ->toolbarActions([
