@@ -168,19 +168,36 @@ In-app notifications that appear within the Filament admin panel:
 
 ### SSL/WSS Support
 
-For production HTTPS sites, you need to configure WSS (secure WebSocket). Sockeon supports this through a reverse proxy like Nginx:
+For production HTTPS sites, you need to configure WSS (secure WebSocket). Sockeon supports this through a reverse proxy like Nginx.
 
-**Nginx Configuration Example:**
+**1. Create a Subdomain (Recommended)**
+Create a subdomain for your WebSocket server (e.g., `ws.your-domain.com`).
+
+**2. Configure Environment Variables**
+Update your `.env` file to separate the bind address from the public address:
+
+```env
+# Server Binding (Internal)
+SOCKEON_HOST=127.0.0.1
+SOCKEON_PORT=8080
+
+# Public Connection (External)
+SOCKEON_EXTERNAL_HOST=ws.your-domain.com
+SOCKEON_EXTERNAL_PORT=443
+```
+
+**3. Configure Nginx**
+Point the subdomain to your internal Sockeon server:
 
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name your-domain.com;
+    server_name ws.your-domain.com;
     
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
     
-    # WebSocket proxy for Sockeon
+    # Proxy to Sockeon (Internal)
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;

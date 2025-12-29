@@ -56,13 +56,29 @@ return [
     'socket' => [
         /**
          * The host of the socket server.
+         * Used for binding the server (e.g. 0.0.0.0 or 127.0.0.1).
          */
         'host' => env('SOCKEON_HOST', 'localhost'),
 
         /**
          * The port of the socket server.
+         * Used for binding the server.
          */
         'port' => env('SOCKEON_PORT', 8080),
+
+        /**
+         * The external host of the socket server.
+         * Used by the client to connect (e.g. ws.example.com).
+         * Defaults to 'host' if not set.
+         */
+        'external_host' => env('SOCKEON_EXTERNAL_HOST', env('SOCKEON_HOST', 'localhost')),
+
+        /**
+         * The external port of the socket server.
+         * Used by the client to connect.
+         * Defaults to 'port' if not set.
+         */
+        'external_port' => env('SOCKEON_EXTERNAL_PORT', env('SOCKEON_PORT', 8080)),
 
         /**
          * The key of the socket server.

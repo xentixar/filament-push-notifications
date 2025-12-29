@@ -169,20 +169,20 @@
     <!-- Web Push Subscription Toggle -->
     <div id="webPushToggleContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9998; display: none;">
         <button id="webPushToggle" style="
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 50px;
-                    padding: 12px 24px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                    transition: all 0.3s ease;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                "
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 50px;
+                            padding: 12px 24px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                            transition: all 0.3s ease;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        "
             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
             <svg id="webPushIcon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -406,8 +406,8 @@
         // WebSocket and Notification Code
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const httpProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-        const socketHost = '{{ config('filament-push-notifications.socket.host') }}';
-        const socketPort = '{{ config('filament-push-notifications.socket.port') }}';
+        const socketHost = '{{ config('filament-push-notifications.socket.external_host') }}';
+        const socketPort = '{{ config('filament-push-notifications.socket.external_port') }}';
         const socketKey = '{{ config('filament-push-notifications.socket.key') }}';
 
         const socket = new WebSocket(
@@ -463,24 +463,24 @@
             notification.id = notificationId;
 
             notification.innerHTML = `
-                                        <div class="notification-icon">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="notification-content">
-                                            <div class="notification-title">${notificationData.title || 'Notification'}</div>
-                                            <div class="notification-message">${notificationData.message || ''}</div>
-                                        </div>
-                                        <button class="notification-close" onclick="closeNotification('${notificationId}')">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                        </button>
-                                        <div class="notification-progress">
-                                            <div class="notification-progress-bar"></div>
-                                        </div>
-                                    `;
+                                                <div class="notification-icon">
+                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="notification-content">
+                                                    <div class="notification-title">${notificationData.title || 'Notification'}</div>
+                                                    <div class="notification-message">${notificationData.message || ''}</div>
+                                                </div>
+                                                <button class="notification-close" onclick="closeNotification('${notificationId}')">
+                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                </button>
+                                                <div class="notification-progress">
+                                                    <div class="notification-progress-bar"></div>
+                                                </div>
+                                            `;
 
             container.appendChild(notification);
 
@@ -512,14 +512,14 @@
         function getIconSvg(type) {
             const icons = {
                 info: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>`,
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>`,
                 success: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                                                        </svg>`,
+                                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                                                                </svg>`,
                 error: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                                                        </svg>`
+                                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                                                                </svg>`
             };
 
             return icons[type] || icons.info;
