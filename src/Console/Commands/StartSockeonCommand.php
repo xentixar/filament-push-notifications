@@ -39,7 +39,7 @@ class StartSockeonCommand extends Command
             'max_age' => 3600,
         ]);
 
-        $logger = new Logger(LogLevel::WARNING, false, true, storage_path('logs/push-notifications.log'), false);
+        $logger = new Logger(LogLevel::INFO, false, true, storage_path('logs/sockeon'), false);
 
         $config = new ServerConfig();
         $config->setHost(config('filament-push-notifications.socket.host'));
