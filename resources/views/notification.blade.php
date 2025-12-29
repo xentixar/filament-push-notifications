@@ -166,12 +166,253 @@
         }
     </style>
 
+    <!-- Web Push Subscription Toggle -->
+    <div id="webPushToggleContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9998; display: none;">
+        <button id="webPushToggle" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 50px;
+                    padding: 12px 24px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                "
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
+            <svg id="webPushIcon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path
+                    d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
+            </svg>
+            <span id="webPushText">Enable Web Push</span>
+        </button>
+    </div>
+
     <div class="notification-container" id="notificationContainer"></div>
 
     <script>
+        // Push Subscription Manager Class
+        class PushSubscriptionManager {
+            constructor() {
+                this.registration = null;
+                this.subscription = null;
+                this.publicKey = null;
+            }
+
+            async init() {
+                if (!('serviceWorker' in navigator)) {
+                    console.warn('Service Workers are not supported');
+                    return false;
+                }
+
+                if (!('PushManager' in window)) {
+                    console.warn('Push API is not supported');
+                    return false;
+                }
+
+                try {
+                    this.registration = await this.registerServiceWorker();
+                    this.publicKey = await this.getPublicKey();
+
+                    if (!this.publicKey) {
+                        console.error('Failed to get VAPID public key');
+                        return false;
+                    }
+
+                    this.subscription = await this.registration.pushManager.getSubscription();
+                    return true;
+                } catch (error) {
+                    console.error('Failed to initialize push subscription manager:', error);
+                    return false;
+                }
+            }
+
+            async registerServiceWorker() {
+                try {
+                    const registration = await navigator.serviceWorker.register('/service-worker.js', {
+                        scope: '/'
+                    });
+                    console.log('Service Worker registered successfully:', registration);
+                    await navigator.serviceWorker.ready;
+                    return registration;
+                } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                    throw error;
+                }
+            }
+
+            async getPublicKey() {
+                try {
+                    const response = await fetch('/push-notifications/vapid-public-key');
+                    const data = await response.json();
+
+                    if (data.error) {
+                        console.error('Error getting public key:', data.error);
+                        return null;
+                    }
+
+                    return data.publicKey;
+                } catch (error) {
+                    console.error('Failed to fetch VAPID public key:', error);
+                    return null;
+                }
+            }
+
+            async requestPermission() {
+                if (!('Notification' in window)) {
+                    console.warn('Notifications are not supported');
+                    return 'denied';
+                }
+
+                const permission = await Notification.requestPermission();
+                console.log('Notification permission:', permission);
+                return permission;
+            }
+
+            async subscribe() {
+                try {
+                    const permission = await this.requestPermission();
+
+                    if (permission !== 'granted') {
+                        console.warn('Notification permission denied');
+                        return false;
+                    }
+
+                    if (this.subscription) {
+                        console.log('Already subscribed to push notifications');
+                        return true;
+                    }
+
+                    const subscription = await this.registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: this.urlBase64ToUint8Array(this.publicKey)
+                    });
+
+                    console.log('Push subscription created:', subscription);
+
+                    const success = await this.sendSubscriptionToServer(subscription);
+
+                    if (success) {
+                        this.subscription = subscription;
+                        return true;
+                    }
+
+                    return false;
+                } catch (error) {
+                    console.error('Failed to subscribe to push notifications:', error);
+                    return false;
+                }
+            }
+
+            async unsubscribe() {
+                try {
+                    if (!this.subscription) {
+                        console.log('No active subscription to unsubscribe from');
+                        return true;
+                    }
+
+                    const success = await this.subscription.unsubscribe();
+
+                    if (success) {
+                        await this.removeSubscriptionFromServer(this.subscription);
+                        this.subscription = null;
+                        console.log('Successfully unsubscribed from push notifications');
+                        return true;
+                    }
+
+                    return false;
+                } catch (error) {
+                    console.error('Failed to unsubscribe from push notifications:', error);
+                    return false;
+                }
+            }
+
+            async sendSubscriptionToServer(subscription) {
+                try {
+                    const subscriptionJson = subscription.toJSON();
+
+                    const response = await fetch('/push-notifications/subscribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                        },
+                        body: JSON.stringify(subscriptionJson)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        console.log('Subscription saved to server:', data);
+                        return true;
+                    } else {
+                        console.error('Failed to save subscription:', data);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error sending subscription to server:', error);
+                    return false;
+                }
+            }
+
+            async removeSubscriptionFromServer(subscription) {
+                try {
+                    const subscriptionJson = subscription.toJSON();
+
+                    const response = await fetch('/push-notifications/unsubscribe', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                        },
+                        body: JSON.stringify({ endpoint: subscriptionJson.endpoint })
+                    });
+
+                    const data = await response.json();
+                    console.log('Subscription removed from server:', data);
+                    return data.success || false;
+                } catch (error) {
+                    console.error('Error removing subscription from server:', error);
+                    return false;
+                }
+            }
+
+            isSubscribed() {
+                return this.subscription !== null;
+            }
+
+            urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding)
+                    .replace(/\-/g, '+')
+                    .replace(/_/g, '/');
+
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+
+                return outputArray;
+            }
+        }
+
+        // WebSocket and Notification Code
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const httpProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+        const socketHost = '{{ config('filament-push-notifications.socket.host') }}';
+        const socketPort = '{{ config('filament-push-notifications.socket.port') }}';
+        const socketKey = '{{ config('filament-push-notifications.socket.key') }}';
+
         const socket = new WebSocket(
-            'ws://{{ config('filament-push-notifications.socket.host') }}:{{ config('filament-push-notifications.socket.port') }}?key={{ config('filament-push-notifications.socket.key') }}'
-            );
+            `${wsProtocol}//${socketHost}:${socketPort}?key=${socketKey}`
+        );
         let notificationCounter = 0;
 
         socket.onopen = () => {
@@ -179,7 +420,7 @@
         };
 
         const handleConnected = (data) => {
-            fetch('http://{{ config('filament-push-notifications.socket.host') }}:{{ config('filament-push-notifications.socket.port') }}/sockeon/auth', {
+            fetch(`${httpProtocol}//${socketHost}:${socketPort}/sockeon/auth`, {
                 method: 'POST',
                 body: JSON.stringify({
                     clientId: data.clientId,
@@ -222,24 +463,24 @@
             notification.id = notificationId;
 
             notification.innerHTML = `
-                <div class="notification-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">${notificationData.title || 'Notification'}</div>
-                    <div class="notification-message">${notificationData.message || ''}</div>
-                </div>
-                <button class="notification-close" onclick="closeNotification('${notificationId}')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                <div class="notification-progress">
-                    <div class="notification-progress-bar"></div>
-                </div>
-            `;
+                                        <div class="notification-icon">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="notification-content">
+                                            <div class="notification-title">${notificationData.title || 'Notification'}</div>
+                                            <div class="notification-message">${notificationData.message || ''}</div>
+                                        </div>
+                                        <button class="notification-close" onclick="closeNotification('${notificationId}')">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                        <div class="notification-progress">
+                                            <div class="notification-progress-bar"></div>
+                                        </div>
+                                    `;
 
             container.appendChild(notification);
 
@@ -253,92 +494,32 @@
         }
 
         function showNativeNotification(notificationData) {
-            if (!('Notification' in window)) {
-                console.log('This browser does not support native notifications');
+            // Native notifications now use web push via service worker
+            if (!pushManager || !pushManager.isSubscribed()) {
+                console.log('User not subscribed to web push, showing local notification instead');
                 showFilamentNotification(notificationData);
                 return;
             }
 
-            if (Notification.permission === 'denied') {
-                console.log('Native notifications are blocked');
-                showFilamentNotification(notificationData);
-                return;
-            }
-
-            if (Notification.permission === 'default') {
-                showFilamentNotification(notificationData);
-                return;
-            }
-
-            if (Notification.permission === 'granted') {
-                createNativeNotification(notificationData);
-            }
+            // For already subscribed users, the notification will come through the service worker
+            // This function is called when receiving via WebSocket, so we just show local notification
+            // The actual web push will be sent from the backend
+            showFilamentNotification(notificationData);
         }
 
 
-
-        function requestNotificationPermission() {
-            if ('Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        console.log('Native notifications enabled');
-                    } else {
-                        console.log('Native notifications denied');
-                    }
-                });
-            }
-        }
-
-        function createNativeNotification(notificationData) {
-            const config = @json(config('filament-push-notifications.native_notification'));
-
-            const notification = new Notification(notificationData.title || 'Notification', {
-                body: notificationData.message || '',
-                icon: notificationData.icon || config.favicon,
-                badge: notificationData.badge || config.badge,
-                tag: notificationData.tag || config.tag,
-                requireInteraction: notificationData.requireInteraction !== undefined ? notificationData
-                    .requireInteraction : config.require_interaction,
-                silent: notificationData.silent !== undefined ? notificationData.silent : config.silent,
-                vibrate: notificationData.vibrate || config.vibrate,
-                dir: notificationData.dir || config.dir,
-                lang: notificationData.lang || config.lang,
-                renotify: notificationData.renotify !== undefined ? notificationData.renotify : config.renotify
-            });
-
-            if (!notificationData.requireInteraction && !config.require_interaction) {
-                setTimeout(() => {
-                    notification.close();
-                }, config.timeout);
-            }
-
-            notification.onclick = function() {
-                window.focus();
-                notification.close();
-
-                if (notificationData.url) {
-                    window.location.href = notificationData.url;
-                } else if (config.url) {
-                    window.location.href = config.url;
-                }
-            };
-
-            notification.onclose = function() {
-                console.log('Native notification closed');
-            };
-        }
 
         function getIconSvg(type) {
             const icons = {
                 info: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>`,
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>`,
                 success: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>`,
+                                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                                                        </svg>`,
                 error: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>`
+                                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                                                        </svg>`
             };
 
             return icons[type] || icons.info;
@@ -390,16 +571,102 @@
             console.log('WebSocket connection closed');
         };
 
-        function initializeNotificationPermissions() {
-            if ('Notification' in window) {
-                if (Notification.permission === 'default') {
-                    requestNotificationPermission();
-                }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeWebPush, 1000);
+        });
+
+        // Web Push Subscription Management
+        let pushManager = null;
+
+        async function initializeWebPush() {
+            pushManager = new PushSubscriptionManager();
+            const initialized = await pushManager.init();
+
+            if (initialized) {
+                updateWebPushButton();
+            } else {
+                console.warn('Web Push not supported or failed to initialize');
+                document.getElementById('webPushToggle').style.display = 'none';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(initializeNotificationPermissions, 1000);
+        function updateWebPushButton() {
+            const button = document.getElementById('webPushToggle');
+            const container = document.getElementById('webPushToggleContainer');
+            const text = document.getElementById('webPushText');
+
+            if (pushManager && pushManager.isSubscribed()) {
+                // User is subscribed - hide the button
+                container.style.display = 'none';
+            } else {
+                // User is not subscribed - show the button
+                container.style.display = 'block';
+                text.textContent = 'Enable Web Push';
+                button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        }
+
+        document.getElementById('webPushToggle')?.addEventListener('click', async function () {
+            if (!pushManager) {
+                console.error('Push manager not initialized');
+                return;
+            }
+
+            const button = this;
+            const text = document.getElementById('webPushText');
+            const container = document.getElementById('webPushToggleContainer');
+            const originalText = text.textContent;
+
+            button.disabled = true;
+            text.textContent = 'Processing...';
+
+            try {
+                if (pushManager.isSubscribed()) {
+                    const success = await pushManager.unsubscribe();
+                    if (success) {
+                        showFilamentNotification({
+                            title: 'Web Push Disabled',
+                            message: 'You will no longer receive push notifications'
+                        });
+                        // Show button again after unsubscribe
+                        container.style.display = 'block';
+                    } else {
+                        showFilamentNotification({
+                            title: 'Error',
+                            message: 'Failed to disable web push notifications'
+                        });
+                    }
+                } else {
+                    const success = await pushManager.subscribe();
+                    if (success) {
+                        showFilamentNotification({
+                            title: 'Web Push Enabled',
+                            message: 'You will now receive push notifications even when the browser is closed'
+                        });
+                        // Hide button after successful subscription
+                        setTimeout(() => {
+                            container.style.display = 'none';
+                        }, 2000);
+                    } else {
+                        showFilamentNotification({
+                            title: 'Error',
+                            message: 'Failed to enable web push notifications. Please check your browser permissions.'
+                        });
+                    }
+                }
+
+                updateWebPushButton();
+            } catch (error) {
+                console.error('Error toggling web push:', error);
+                showFilamentNotification({
+                    title: 'Error',
+                    message: 'An error occurred while managing push notifications'
+                });
+                text.textContent = originalText;
+            } finally {
+                button.disabled = false;
+            }
         });
 
         document.addEventListener('keydown', (e) => {
