@@ -14,13 +14,18 @@
             "name": "xentixar",
             "email": "xentixar@gmail.com",
             "role": "Developer",
-            "homepage": "https://pawanrajbhatta.com.np",
-            "github": "https://github.com/xentixar"
+            "homepage": "https://pawanrajbhatta.com.np"
         }
     ],
     "require": {
         "filament/support": "^4.0",
-        "sockeon/sockeon": "^2.0"
+        "sockeon/sockeon": "^2.0",
+        "minishlink/web-push": "^9.0",
+        "ext-bcmath": "*"
+    },
+    "suggest": {
+        "ext-gmp": "Required for better performance in web push cryptographic calculations",
+        "ext-bcmath": "Alternative to GMP for web push cryptographic calculations"
     },
     "extra": {
         "laravel": {

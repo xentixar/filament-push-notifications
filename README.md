@@ -4,18 +4,21 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/xentixar/filament-push-notifications.svg)](https://packagist.org/packages/xentixar/filament-push-notifications)
 [![License](https://img.shields.io/packagist/l/xentixar/filament-push-notifications.svg)](https://packagist.org/packages/xentixar/filament-push-notifications)
 
-A comprehensive Laravel package that provides real-time push notifications for Filament applications with support for both native notifications and in-app local notifications. Built with WebSocket technology for instant delivery and seamless user experience.
+A comprehensive Laravel package that provides real-time push notifications for Filament applications. Native notifications use the Web Push API with service workers for persistent delivery, while local notifications provide in-app toast-style alerts. Built with WebSocket technology for instant real-time delivery.
 
 ## ✨ Features
 
 - **Real-time Notifications**: Instant push notifications using WebSocket technology
-- **Dual Notification Types**: Support for both native notifications and in-app local notifications
+- **Web Push API**: Native notifications use service workers for persistent delivery (even when browser is closed)
+- **Dual Notification Types**: Support for both native (web push) and in-app local notifications
 - **Scheduled Notifications**: Schedule notifications to be sent at specific times
 - **User Targeting**: Send notifications to specific users or groups
 - **Filament Admin Panel**: Complete admin interface for managing notifications
-- **Native Notification Support**: System notifications with customizable options
-- **WebSocket Integration**: Built-in WebSocket server using Sockeon
+- **Service Worker Integration**: Automatic service worker registration and management
+- **Push Subscription Management**: Easy subscribe/unsubscribe with visual UI toggle
+- **WebSocket Integration**: Built-in WebSocket server using Sockeon for real-time delivery
 - **Queue Support**: Background job processing for better performance
+- **VAPID Authentication**: Secure web push with VAPID keys
 - **Customizable Configuration**: Extensive configuration options for all aspects
 - **Migration Ready**: Automatic database setup and migrations
 
@@ -68,7 +71,25 @@ class AdminPanelProvider extends PanelProvider
 }
 ```
 
-### Step 5: Configure Environment Variables
+### Step 5: Generate VAPID Keys
+
+Generate VAPID keys for web push notifications:
+
+```bash
+php artisan push:generate-vapid-keys --update-env
+```
+
+This will generate and add the VAPID keys to your `.env` file automatically.
+
+### Step 6: Publish Service Worker
+
+Publish the service worker to your public directory:
+
+```bash
+php artisan vendor:publish --tag=filament-push-notifications-assets
+```
+
+### Step 7: Configure Environment Variables
 
 Add the following variables to your `.env` file:
 
@@ -79,7 +100,16 @@ SOCKEON_PORT=8080
 SOCKEON_KEY=your-secret-key
 SOCKEON_DEBUG=true
 
-# Notification Configuration (Optional)
+# Web Push VAPID Keys (Generated via: php artisan push:generate-vapid-keys)
+VAPID_PUBLIC_KEY="your-public-key"
+VAPID_PRIVATE_KEY="your-private-key"
+VAPID_SUBJECT="mailto:admin@example.com"
+
+# Web Push Configuration (Optional)
+WEB_PUSH_TTL=2419200
+WEB_PUSH_URGENCY=normal
+
+# Native Notification Configuration (Optional)
 NOTIFICATION_FAVICON=https://your-domain.com/favicon.ico
 NOTIFICATION_DEFAULT_URL=https://your-domain.com
 NOTIFICATION_TAG=default
@@ -94,58 +124,38 @@ NOTIFICATION_TIMEOUT=5000
 
 ## 🔧 Configuration
 
-The package configuration file is located at `config/filament-push-notifications.php`. Here's an overview of the main configuration sections:
+The package configuration file is located at `config/filament-push-notifications.php`. You can customize:
+- Web Push settings (VAPID keys, TTL, urgency)
+- WebSocket server settings
+- Native notification options (icons, badges, vibration patterns, etc.)
 
-### Socket Configuration
-
-```php
-'socket' => [
-    'host' => env('SOCKEON_HOST', 'localhost'),
-    'port' => env('SOCKEON_PORT', 8080),
-    'key' => env('SOCKEON_KEY', 'secret'),
-    'debug' => env('SOCKEON_DEBUG', true),
-    'allowed_origins' => ['http://127.0.0.1:8000', 'http://localhost:8000'],
-],
-```
-
-### Native Notification Configuration
-
-```php
-'native_notification' => [
-    'favicon' => env('NOTIFICATION_FAVICON', 'https://example.com/favicon.ico'),
-    'url' => env('NOTIFICATION_DEFAULT_URL', 'https://example.com'),
-    'tag' => env('NOTIFICATION_TAG', 'default'),
-    'require_interaction' => env('NOTIFICATION_REQUIRE_INTERACTION', false),
-    'vibrate' => [100, 100, 100],
-    'silent' => env('NOTIFICATION_SILENT', false),
-    'badge' => env('NOTIFICATION_BADGE', 'https://example.com/badge.ico'),
-    'dir' => env('NOTIFICATION_DIR', 'auto'),
-    'lang' => env('NOTIFICATION_LANG', 'en'),
-    'renotify' => env('NOTIFICATION_RENOTIFY', false),
-    'timeout' => env('NOTIFICATION_TIMEOUT', 5000),
-],
-```
+Refer to the config file for all available options.
 
 ## 📱 Usage
 
 ### Starting the WebSocket Server
 
 ```bash
-php artisan sockeon:start
+php artisan start:sockeon
 ```
 
 ## 🎯 Notification Types
 
-### Native Notifications
+### Native Notifications (Web Push)
 
-Native notifications appear as system notifications and support:
-- Custom icons and badges
-- Vibration patterns (mobile devices)
-- Click actions and URL navigation
-- Sound and interaction requirements
-- Language and direction settings
+Native notifications use the Web Push API with service workers for persistent delivery:
+- **Persistent**: Work even when the browser is closed
+- **Service Worker**: Automatic registration and management
+- **VAPID Authentication**: Secure delivery with VAPID keys
+- **Subscription Management**: Easy subscribe/unsubscribe with UI toggle
+- **Custom icons and badges**: Fully customizable appearance
+- **Click actions**: Navigate to URLs on notification click
+- **Vibration patterns**: Mobile device support
+- **Rich options**: Sound, interaction requirements, and more
 
-### Filament Notifications
+Users must subscribe to web push notifications by clicking the "Enable Web Push" button that appears in the bottom-right corner of the Filament admin panel.
+
+### Local Notifications (In-App)
 
 In-app notifications that appear within the Filament admin panel:
 - Toast-style notifications
@@ -154,108 +164,72 @@ In-app notifications that appear within the Filament admin panel:
 - Progress indicators
 - Dark mode support
 
-## 🗄️ Database Structure
+## 🚀 Production Deployment
 
-The package creates a `push_notifications` table with the following structure:
+### SSL/WSS Support
 
-```php
-Schema::create('push_notifications', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-    $table->text('message');
-    $table->enum('type', ['native', 'local']);
-    $table->json('receivers');
-    $table->timestamp('scheduled_at')->nullable();
-    $table->timestamps();
-});
-```
+For production HTTPS sites, you need to configure WSS (secure WebSocket). Sockeon supports this through a reverse proxy like Nginx:
 
-## 🔌 Frontend Integration
+**Nginx Configuration Example:**
 
-The package automatically injects the notification system into your Filament admin panel. The JavaScript handles:
-
-- WebSocket connections
-- Real-time notification delivery
-- Native notification permissions
-- Notification display and management
-- Auto-dismiss and progress tracking
-
-### Customization
-
-You can customize the notification appearance by publishing and modifying the view:
-
-```bash
-php artisan vendor:publish --tag=filament-push-notifications-views
-```
-
-## 📚 API Reference
-
-### Models
-
-#### PushNotification
-
-```php
-class PushNotification extends Model
-{
-    protected $fillable = [
-        'title',
-        'message', 
-        'type',
-        'receivers',
-        'scheduled_at',
-    ];
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
     
-    protected $casts = [
-        'receivers' => 'array',
-        'type' => PushNotificationType::class,
-        'scheduled_at' => 'datetime',
-    ];
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    # WebSocket proxy for Sockeon
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        
+        # WebSocket support
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # Forward headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket timeouts
+        proxy_connect_timeout 7d;
+        proxy_send_timeout 7d;
+        proxy_read_timeout 7d;
+    }
 }
 ```
 
-### Enums
+**Important Notes:**
+- The frontend JavaScript automatically detects HTTPS and uses `wss://` protocol
+- Sockeon runs on HTTP internally (e.g., `127.0.0.1:8080`)
+- Nginx handles SSL termination and proxies to Sockeon
+- Web Push notifications require HTTPS in production
 
-#### PushNotificationType
-
-```php
-enum PushNotificationType: string
-{
-    case NATIVE = 'native';
-    case LOCAL = 'local';
-}
-```
-
-### Events
-
-#### NotificationPushedEvent
-
-```php
-class NotificationPushedEvent
-{
-    public function __construct(
-        public array $notification
-    ) {}
-}
-```
+For more details, see [Sockeon Reverse Proxy Documentation](https://sockeon.com/v2.0/advanced/reverse-proxy).
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
-1. **WebSocket Connection Failed**
-   - Ensure the Sockeon server is running
-   - Check host and port configuration
+1. **Web Push Not Working**
+   - Ensure HTTPS is enabled (required for web push in production)
+   - Check that VAPID keys are properly configured
+   - Verify service worker is registered (check DevTools → Application → Service Workers)
+   - Ensure user has granted notification permission
+
+2. **WebSocket Connection Failed**
+   - Ensure the Sockeon server is running: `php artisan sockeon:start`
+   - Check host and port configuration in `.env`
    - Verify firewall settings
 
-2. **Native Notifications Not Working**
-- Check native notification permissions
-   - Ensure HTTPS is used (required for notifications)
-   - Verify favicon and badge URLs are accessible
-
 3. **Notifications Not Appearing**
-   - Check WebSocket connection status
-   - Verify user authentication
    - Check browser console for errors
+   - Verify user is subscribed to web push
+   - Check WebSocket connection status
 
 ### Debug Mode
 
@@ -267,14 +241,7 @@ SOCKEON_DEBUG=true
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-1. Fork the repository
-2. Clone your fork
-3. Install dependencies: `composer install`
-5. Submit a pull request
+We welcome contributions! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
@@ -283,7 +250,8 @@ This package is open-sourced software licensed under the [MIT License](LICENSE).
 ## 🙏 Acknowledgments
 
 - [Filament](https://filamentphp.com/) for the amazing admin panel framework
-- [Sockeon](https://github.com/sockeon/sockeon) for WebSocket server implementation
+- [Sockeon](https://sockeon.com) for WebSocket server implementation
+- [minishlink/web-push](https://github.com/web-push-libs/web-push-php) for Web Push protocol implementation
 - [Laravel](https://laravel.com/) for the robust PHP framework
 
 ## 📞 Support

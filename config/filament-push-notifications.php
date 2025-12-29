@@ -8,6 +8,48 @@ return [
     'receiver_model' => \App\Models\User::class,
 
     /**
+     * Web Push configuration.
+     * Settings for Web Push API notifications using service workers.
+     */
+    'web_push' => [
+        /**
+         * VAPID public key for push notifications.
+         * Generate using: php artisan push:generate-vapid-keys
+         */
+        'vapid_public_key' => env('VAPID_PUBLIC_KEY'),
+
+        /**
+         * VAPID private key for push notifications.
+         * Keep this secret and never expose it to the client.
+         */
+        'vapid_private_key' => env('VAPID_PRIVATE_KEY'),
+
+        /**
+         * VAPID subject (contact email or URL).
+         * This identifies your application to push services.
+         */
+        'vapid_subject' => env('VAPID_SUBJECT', 'mailto:admin@example.com'),
+
+        /**
+         * Time-to-live for push messages in seconds.
+         * Default: 2419200 (4 weeks)
+         */
+        'ttl' => env('WEB_PUSH_TTL', 2419200),
+
+        /**
+         * Push message urgency level.
+         * Options: 'very-low', 'low', 'normal', 'high'
+         */
+        'urgency' => env('WEB_PUSH_URGENCY', 'normal'),
+
+        /**
+         * Topic for replacing notifications.
+         * Notifications with the same topic will replace each other.
+         */
+        'topic' => env('WEB_PUSH_TOPIC', null),
+    ],
+
+    /**
      * The socket configuration for real-time communication.
      * These settings control the WebSocket connection to the notification server.
      */
@@ -16,22 +58,22 @@ return [
          * The host of the socket server.
          */
         'host' => env('SOCKEON_HOST', 'localhost'),
-        
+
         /**
          * The port of the socket server.
          */
         'port' => env('SOCKEON_PORT', 8080),
-        
+
         /**
          * The key of the socket server.
          */
         'key' => env('SOCKEON_KEY', 'secret'),
-        
+
         /**
          * Whether the socket server is in debug mode.
          */
         'debug' => env('SOCKEON_DEBUG', true),
-        
+
         /**
          * The allowed origins for the socket server.
          */
@@ -65,31 +107,31 @@ return [
          * This should be a publicly accessible image URL.
          */
         'favicon' => env('NOTIFICATION_FAVICON', 'https://www.google.com/favicon.ico'),
-        
+
         /**
          * Default URL to navigate to when the notification is clicked.
          * Can be overridden by the backend for specific notifications.
          */
         'url' => env('NOTIFICATION_DEFAULT_URL', 'https://www.google.com'),
-        
+
         /**
          * A unique tag for grouping notifications.
          * Notifications with the same tag will replace each other.
          */
         'tag' => env('NOTIFICATION_TAG', 'default'),
-        
+
         /**
          * Whether the notification requires user interaction before closing.
          * If true, the notification will stay open until manually dismissed.
          */
         'require_interaction' => env('NOTIFICATION_REQUIRE_INTERACTION', false),
-        
+
         /**
          * Vibration pattern for mobile devices.
          * Array of numbers representing vibration intervals in milliseconds.
          */
         'vibrate' => [100, 100, 100],
-        
+
         /**
          * Note: Custom actions are only supported for persistent notifications
          * shown through Service Workers, not for regular native notifications.
@@ -106,37 +148,37 @@ return [
                 'title' => 'Dismiss',
             ],
         ],
-        
+
         /**
          * Whether the notification should be silent (no sound).
          * If false, the system will play a default notification sound.
          */
         'silent' => env('NOTIFICATION_SILENT', false),
-        
+
         /**
          * Badge icon URL for the notification.
          * Displayed in the browser tab or app icon.
          */
         'badge' => env('NOTIFICATION_BADGE', 'https://www.google.com/favicon.ico'),
-        
+
         /**
          * Notification direction for RTL languages.
          * Can be 'auto', 'ltr', or 'rtl'.
          */
         'dir' => env('NOTIFICATION_DIR', 'auto'),
-        
+
         /**
          * Language of the notification.
          * Should be a valid BCP 47 language tag.
          */
         'lang' => env('NOTIFICATION_LANG', 'en'),
-        
+
         /**
          * Whether to renotify when a notification with the same tag is shown.
          * If true, the notification will be shown even if one with the same tag exists.
          */
         'renotify' => env('NOTIFICATION_RENOTIFY', false),
-        
+
         /**
          * Default timeout for auto-closing notifications in milliseconds.
          * Only applies when require_interaction is false.
