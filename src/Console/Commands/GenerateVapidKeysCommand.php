@@ -23,6 +23,7 @@ class GenerateVapidKeysCommand extends Command
 
     /**
      * Execute the console command.
+     * @throws \ErrorException
      */
     public function handle(): int
     {

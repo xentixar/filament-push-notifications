@@ -183,11 +183,11 @@
                             align-items: center;
                             gap: 8px;
                         "
-            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
             <svg id="webPushIcon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path
-                    d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
+                    d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
             </svg>
             <span id="webPushText">Enable Web Push</span>
         </button>
@@ -196,7 +196,6 @@
     <div class="notification-container" id="notificationContainer"></div>
 
     <script>
-        // Push Subscription Manager Class
         class PushSubscriptionManager {
             constructor() {
                 this.registration = null;
@@ -389,7 +388,7 @@
             urlBase64ToUint8Array(base64String) {
                 const padding = '='.repeat((4 - base64String.length % 4) % 4);
                 const base64 = (base64String + padding)
-                    .replace(/\-/g, '+')
+                    .replace(/-/g, '+')
                     .replace(/_/g, '/');
 
                 const rawData = window.atob(base64);
@@ -403,7 +402,6 @@
             }
         }
 
-        // WebSocket and Notification Code
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const httpProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
         const socketHost = '{{ config('filament-push-notifications.socket.external_host') }}';
@@ -463,24 +461,23 @@
             notification.id = notificationId;
 
             notification.innerHTML = `
-                                                <div class="notification-icon">
-                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div class="notification-content">
-                                                    <div class="notification-title">${notificationData.title || 'Notification'}</div>
-                                                    <div class="notification-message">${notificationData.message || ''}</div>
-                                                </div>
-                                                <button class="notification-close" onclick="closeNotification('${notificationId}')">
-                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                    </svg>
-                                                </button>
-                                                <div class="notification-progress">
-                                                    <div class="notification-progress-bar"></div>
-                                                </div>
-                                            `;
+                <div class="notification-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notificationData.title || 'Notification'}</div>
+                    <div class="notification-message">${notificationData.message || ''}</div>
+                </div>
+                <button class="notification-close" onclick="closeNotification('${notificationId}')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>`;
 
             container.appendChild(notification);
 
@@ -494,32 +491,27 @@
         }
 
         function showNativeNotification(notificationData) {
-            // Native notifications now use web push via service worker
             if (!pushManager || !pushManager.isSubscribed()) {
                 console.log('User not subscribed to web push, showing local notification instead');
                 showFilamentNotification(notificationData);
                 return;
             }
 
-            // For already subscribed users, the notification will come through the service worker
-            // This function is called when receiving via WebSocket, so we just show local notification
-            // The actual web push will be sent from the backend
             showFilamentNotification(notificationData);
         }
-
 
 
         function getIconSvg(type) {
             const icons = {
                 info: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>`,
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                       </svg>`,
                 success: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                                                                </svg>`,
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>`,
                 error: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                                                                </svg>`
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>`
             };
 
             return icons[type] || icons.info;
@@ -576,7 +568,6 @@
             setTimeout(initializeWebPush, 1000);
         });
 
-        // Web Push Subscription Management
         let pushManager = null;
 
         async function initializeWebPush() {
