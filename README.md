@@ -22,7 +22,14 @@ A comprehensive Laravel package that provides real-time push notifications for F
 - **Customizable Configuration**: Extensive configuration options for all aspects
 - **Migration Ready**: Automatic database setup and migrations
 
-## 🚀 Installation
+## � Documentation
+
+- [Installation Guide](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [**Upgrading from 1.x to 2.x**](UPGRADE.md) ⬆️
+
+## �🚀 Installation
 
 ### Prerequisites
 
