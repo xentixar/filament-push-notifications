@@ -96,6 +96,7 @@ After installation, restart your PHP service (PHP-FPM, Apache, etc.).
 The package includes a new migration for the `push_subscriptions` table:
 
 ```bash
+php artisan vendor:publish --tag=filament-push-notifications-migrations
 php artisan migrate
 ```
 
