@@ -35,7 +35,7 @@ A comprehensive Laravel package that provides real-time push notifications for F
 
 - Laravel 11.x or higher
 - PHP 8.2 or higher
-- Filament 4.x
+- Filament 4.x or 5.x
 - Composer
 
 ### Step 1: Install the Package

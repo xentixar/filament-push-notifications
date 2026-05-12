@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "filament/support": "^4.0",
+        "filament/support": "^4.0 || ^5.0",
         "sockeon/sockeon": "^2.0",
         "minishlink/web-push": "^9.0",
         "ext-bcmath": "*"
